@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日语五十音学习</title>
+    <style>
+      
+      body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-top: 20px;
+        }
+        #container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            margin-top: 30px;
+        }
+        #leftSide, #rightSide {
+            width: 45%;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            border-radius: 10px;
+        }
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        td {
+            font-size: 24px;
+            cursor: pointer;
+        }
+        td:hover {
+            background-color: #f0f0f0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .hidden {
+            display: none;
+        }
+        #quizSection {
+            text-align: left;
+        }
+        #pronunciationTip {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #333;
+        }
+        #quizQuestion, #quizResult {
+            margin-top: 10px;
+            font-size: 18px;
+        }
+        input {
+            padding: 8px;
+            font-size: 16px;
+            width: 80%;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>日语五十音学习</h1>
+    <button onclick="toggleTable()">切换到片假名</button>
+    
+    <div id="container">
+        <!-- 左侧：五十音表 -->
+        <div id="leftSide">
+            <div id="hiraganaTable">
+                <h3>清音表</h3>
+                <table id="hiraganaSeionTable"></table>
+                <h3>浊音表</h3>
+                <table id="hiraganaDakuonTable"></table>
+                <h3>拗音表</h3>
+                <table id="hiraganaYouonTable"></table>
+            </div>
+
+            <div id="katakanaTable" class="hidden">
+                <h3>清音表</h3>
+                <table id="katakanaSeionTable"></table>
+                <h3>浊音表</h3>
+                <table id="katakanaDakuonTable"></table>
+                <h3>拗音表</h3>
+                <table id="katakanaYouonTable"></table>
+            </div>
+        </div>
+
+        <!-- 右侧：发音测试 -->
+        <div id="rightSide">
+            <h2>发音测试</h2>
+            <div id="quizSection">
+                <div id="quizQuestion"></div>
+                <input type="text" id="userInput" placeholder="请输入发音" />
+                <button onclick="checkAnswer()">提交</button>
+                <div id="quizResult"></div>
+            </div>
+            <div id="pronunciationTip"></div>
+        </div>
+    </div>
+
+    <script>
+        // 定义五十音数据
+        const hiragana = {
+            seion: [
+                ["あ", "い", "う", "え", "お"],
+                ["か", "き", "く", "け", "こ"],
+                ["さ", "し", "す", "せ", "そ"],
+                ["た", "ち", "つ", "て", "と"],
+                ["な", "に", "ぬ", "ね", "の"],
+                ["は", "ひ", "ふ", "へ", "ほ"],
+                ["ま", "み", "む", "め", "も"],
+                ["や", "", "ゆ", "", "よ"],
+                ["ら", "り", "る", "れ", "ろ"],
+                ["わ", "", "", "", "を"],
+                ["ん", "", "", "", ""]
+            ],
+            dakuon: [
+                ["が", "ぎ", "ぐ", "げ", "ご"],
+                ["ざ", "じ", "ず", "ぜ", "ぞ"],
+                ["だ", "ぢ", "づ", "で", "ど"],
+                ["ば", "び", "ぶ", "べ", "ぼ"],
+                ["ぱ", "ぴ", "ぷ", "ぺ", "ぽ"]
+            ],
+            youon: [
+                ["きゃ", "きゅ", "きょ"],
+                ["しゃ", "しゅ", "しょ"],
+                ["ちゃ", "ちゅ", "ちょ"],
+                ["にゃ", "にゅ", "にょ"],
+                ["ひゃ", "ひゅ", "ひょ"],
+                ["みゃ", "みゅ", "みょ"],
+                ["りゃ", "りゅ", "りょ"]
+            ]
+        };
+
+        const katakana = {
+            seion: [
+                ["ア", "イ", "ウ", "エ", "オ"],
+                ["カ", "キ", "ク", "ケ", "コ"],
+                ["サ", "シ", "ス", "セ", "ソ"],
+                ["タ", "チ", "ツ", "テ", "ト"],
+                ["ナ", "ニ", "ヌ", "ネ", "ノ"],
+                ["ハ", "ヒ", "フ", "ヘ", "ホ"],
+                ["マ", "ミ", "ム", "メ", "モ"],
+                ["ヤ", "", "ユ", "", "ヨ"],
+                ["ラ", "リ", "ル", "レ", "ロ"],
+                ["ワ", "", "", "", "ヲ"],
+                ["ン", "", "", "", ""]
+            ],
+            dakuon: [
+                ["ガ", "ギ", "グ", "ゲ", "ゴ"],
+                ["ザ", "ジ", "ズ", "ゼ", "ゾ"],
+                ["ダ", "ヂ", "ヅ", "デ", "ド"],
+                ["バ", "ビ", "ブ", "ベ", "ボ"],
+                ["パ", "ピ", "プ", "ペ", "ポ"]
+            ],
+            youon: [
+                ["キャ", "キュ", "キョ"],
+                ["シャ", "シュ", "ショ"],
+                ["チャ", "チュ", "チョ"],
+                ["ニャ", "ニュ", "ニョ"],
+                ["ヒャ", "ヒュ", "ヒョ"],
+                ["ミャ", "ミュ", "ミョ"],
+                ["リャ", "リュ", "リョ"]
+            ]
+        };
+
+        // 假名发音对照表
+        const hiraganaPronunciations = {
+            "あ": "a", "い": "i", "う": "u", "え": "e", "お": "o",
+            "か": "ka", "き": "ki", "く": "ku", "け": "ke", "こ": "ko",
+            "さ": "sa", "し": "shi", "す": "su", "せ": "se", "そ": "so",
+            "た": "ta", "ち": "chi", "つ": "tsu", "て": "te", "と": "to",
+            "な": "na", "に": "ni", "ぬ": "nu", "ね": "ne", "の": "no",
+            "は": "ha", "ひ": "hi", "ふ": "fu", "へ": "he", "ほ": "ho",
+            "ま": "ma", "み": "mi", "む": "mu", "め": "me", "も": "mo",
+            "や": "ya", "ゆ": "yu", "よ": "yo",
+            "ら": "ra", "り": "ri", "る": "ru", "れ": "re", "ろ": "ro",
+            "わ": "wa", "を": "wo", "ん": "n",
+            "が": "ga", "ぎ": "gi", "ぐ": "gu", "げ": "ge", "ご": "go",
+            "ざ": "za", "じ": "ji", "ず": "zu", "ぜ": "ze", "ぞ": "zo",
+            "だ": "da", "ぢ": "ji", "づ": "zu", "で": "de", "ど": "do",
+            "ば": "ba", "び": "bi", "ぶ": "bu", "べ": "be", "ぼ": "bo",
+            "ぱ": "pa", "ぴ": "pi", "ぷ": "pu", "ぺ": "pe", "ぽ": "po",
+            "きゃ": "kya", "きゅ": "kyu", "きょ": "kyo",
+            "しゃ": "sha", "しゅ": "shu", "しょ": "sho",
+            "ちゃ": "cha", "ちゅ": "chu", "ちょ": "cho",
+            "にゃ": "nya", "にゅ": "nyu", "にょ": "nyo",
+            "ひゃ": "hya", "ひゅ": "hyu", "ひょ": "hyo",
+            "みゃ": "mya", "みゅ": "myu", "みょ": "myo",
+            "りゃ": "rya", "りゅ": "ryu", "りょ": "ryo"
+        };
+
+        const katakanaPronunciations = {
+            "ア": "a", "イ": "i", "ウ": "u", "エ": "e", "オ": "o",
+            "カ": "ka", "キ": "ki", "ク": "ku", "ケ": "ke", "コ": "ko",
+            "サ": "sa", "シ": "shi", "ス": "su", "セ": "se", "ソ": "so",
+            "タ": "ta", "チ": "chi", "ツ": "tsu", "テ": "te", "ト": "to",
+            "ナ": "na", "ニ": "ni", "ヌ": "nu", "ネ": "ne", "ノ": "no",
+            "ハ": "ha", "ヒ": "hi", "フ": "fu", "ヘ": "he", "ホ": "ho",
+            "マ": "ma", "ミ": "mi", "ム": "mu", "メ": "me", "モ": "mo",
+            "ヤ": "ya", "ユ": "yu", "ヨ": "yo",
+            "ラ": "ra", "リ": "ri", "ル": "ru", "レ": "re", "ロ": "ro",
+            "ワ": "wa", "ヲ": "wo", "ン": "n",
+            "ガ": "ga", "ギ": "gi", "グ": "gu", "ゲ": "ge", "ゴ": "go",
+            "ザ": "za", "ジ": "ji", "ズ": "zu", "ゼ": "ze", "ゾ": "zo",
+            "ダ": "da", "ヂ": "ji", "ヅ": "zu", "デ": "de", "ド": "do",
+            "バ": "ba", "ビ": "bi", "ブ": "bu", "ベ": "be", "ボ": "bo",
+            "パ": "pa", "ピ": "pi", "プ": "pu", "ペ": "pe", "ポ": "po",
+            "キャ": "kya", "キュ": "kyu", "キョ": "kyo",
+            "シャ": "sha", "シュ": "shu", "ショ": "sho",
+            "チャ": "cha", "チュ": "chu", "チョ": "cho",
+            "ニャ": "nya", "ニュ": "nyu", "ニョ": "nyo",
+            "ヒャ": "hya", "ヒュ": "hyu", "ヒョ": "hyo",
+            "ミャ": "mya", "ミュ": "myu", "ミョ": "myo",
+            "リャ": "rya", "リュ": "ryu", "リョ": "ryo"
+        };
+
+        let currentQuestion;
+        let isHiragana = true; // 记录当前是平假名还是片假名
+
+        function toggleTable() {
+            const hiraganaTable = document.getElementById("hiraganaTable");
+            const katakanaTable = document.getElementById("katakanaTable");
+
+            if (isHiragana) {
+                hiraganaTable.classList.add("hidden");
+                katakanaTable.classList.remove("hidden");
+            } else {
+                hiraganaTable.classList.remove("hidden");
+                katakanaTable.classList.add("hidden");
+            }
+
+            isHiragana = !isHiragana; // 切换状态
+            generateQuestion(); // 在切换后生成新的问题
+        }
+
+        function generateQuestion() {
+            const characters = Object.keys(isHiragana ? hiraganaPronunciations : katakanaPronunciations);
+            const randomChar = characters[Math.floor(Math.random() * characters.length)];
+            currentQuestion = randomChar;
+            document.getElementById("quizQuestion").innerText = `请给出"${currentQuestion}"的发音：`;
+            document.getElementById("userInput").value = "";
+            document.getElementById("quizResult").innerText = "";
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById("userInput").value.trim();
+            const correctAnswer = isHiragana ? hiraganaPronunciations[currentQuestion] : katakanaPronunciations[currentQuestion];
+            const result = document.getElementById("quizResult");
+
+            if (userAnswer === correctAnswer) {
+                result.innerText = "回答正确！";
+                result.style.color = "green";
+            } else {
+                result.innerText = `回答错误，正确答案是：${correctAnswer}`;
+                result.style.color = "red";
+            }
+            setTimeout(generateQuestion, 2000);
+        }
+
+        function showPronunciation(element) {
+            const pronunciationTip = document.getElementById("pronunciationTip");
+            const character = element.innerText;
+            const pronunciation = isHiragana ? hiraganaPronunciations[character] : katakanaPronunciations[character];
+            pronunciationTip.innerText = `发音: ${pronunciation}`;
+        }
+
+        // 动态生成五十音表
+        function generateTable(id, data) {
+            const table = document.getElementById(id);
+            data.forEach(row => {
+                const tr = document.createElement("tr");
+                row.forEach(char => {
+                    const td = document.createElement("td");
+                    td.innerText = char;
+                    td.onclick = function () {
+                        showPronunciation(td);
+                    };
+                    tr.appendChild(td);
+                });
+                table.appendChild(tr);
+            });
+        }
+
+        // 页面加载后生成表格
+        window.onload = function () {
+            generateTable("hiraganaSeionTable", hiragana.seion);
+            generateTable("hiraganaDakuonTable", hiragana.dakuon);
+            generateTable("hiraganaYouonTable", hiragana.youon);
+
+            generateTable("katakanaSeionTable", katakana.seion);
+            generateTable("katakanaDakuonTable", katakana.dakuon);
+            generateTable("katakanaYouonTable", katakana.youon);
+            
+            generateQuestion(); // 生成第一个问题
+        }
+    </script>
+</body>
+</html>
