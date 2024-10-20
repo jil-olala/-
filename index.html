@@ -118,7 +118,12 @@
                 <button onclick="checkAnswer()">提交</button>
                 <div id="quizResult"></div>
             </div>
+
             <div id="pronunciationTip"></div>
+
+            <!-- 记忆功能部分 -->
+            <h2>记忆列表 (错题或超时)</h2>
+            <ul id="memoryList"></ul>
         </div>
     </div>
 
@@ -257,29 +262,84 @@
             isHiragana = !isHiragana; // 切换状态
             generateQuestion(); // 在切换后生成新的问题
         }
+        
+        let startTime; // 记录题目出现的时间
+        let questionPool = [];
+        let memoryList = []; // 存储用户答错或超时的问题
+
+        function resetQuestionPool() {
+            questionPool = Object.keys(isHiragana ? hiraganaPronunciations : katakanaPronunciations);
+        }
 
         function generateQuestion() {
-            const characters = Object.keys(isHiragana ? hiraganaPronunciations : katakanaPronunciations);
-            const randomChar = characters[Math.floor(Math.random() * characters.length)];
-            currentQuestion = randomChar;
+            if (questionPool.length === 0) {
+                resetQuestionPool();
+            }
+
+            const randomIndex = Math.floor(Math.random() * questionPool.length);
+            currentQuestion = questionPool[randomIndex];
+            questionPool.splice(randomIndex, 1);
+
             document.getElementById("quizQuestion").innerText = `请给出"${currentQuestion}"的发音：`;
             document.getElementById("userInput").value = "";
             document.getElementById("quizResult").innerText = "";
+
+            startTime = Date.now(); // 记录提问时间
         }
+
 
         function checkAnswer() {
             const userAnswer = document.getElementById("userInput").value.trim();
             const correctAnswer = isHiragana ? hiraganaPronunciations[currentQuestion] : katakanaPronunciations[currentQuestion];
             const result = document.getElementById("quizResult");
 
-            if (userAnswer === correctAnswer) {
+            const endTime = Date.now();
+            const timeTaken = (endTime - startTime) / 1000; // 计算用户作答时间
+
+            if (userAnswer === correctAnswer && timeTaken <= 5) {
                 result.innerText = "回答正确！";
                 result.style.color = "green";
             } else {
                 result.innerText = `回答错误，正确答案是：${correctAnswer}`;
                 result.style.color = "red";
+                addToMemoryList(currentQuestion); // 如果回答错误或时间超过2秒，加入记忆列表
             }
+
             setTimeout(generateQuestion, 2000);
+        }
+
+        // 将问题加入记忆列表，并保存到 localStorage
+        function addToMemoryList(character) {
+            if (!memoryList.includes(character)) {
+                memoryList.push(character);
+                updateMemoryListUI(); // 更新页面中的记忆列表
+                saveMemoryToLocalStorage(); // 保存到 localStorage
+            }
+        }
+
+        // 更新页面中的记忆列表
+        function updateMemoryListUI() {
+            const memoryListElement = document.getElementById("memoryList");
+            memoryListElement.innerHTML = ""; // 清空当前列表
+            memoryList.forEach(char => {
+                const li = document.createElement("li");
+                li.innerText = `${char} - ${isHiragana ? hiraganaPronunciations[char] : katakanaPronunciations[char]}`;
+                memoryListElement.appendChild(li);
+            });
+        }
+
+        // 保存记忆列表到 localStorage
+        function saveMemoryToLocalStorage() {
+            localStorage.setItem("memoryList", JSON.stringify(memoryList));
+        }
+
+        // 从 localStorage 加载记忆列表
+        function loadMemoryFromLocalStorage() {
+            const storedMemory = localStorage.getItem("memoryList");
+            if (storedMemory) {
+                memoryList = JSON.parse(storedMemory);
+                updateMemoryListUI();
+            }
         }
 
         function showPronunciation(element) {
