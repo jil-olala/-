@@ -131,6 +131,8 @@
             <h2>记忆列表 (错题或超时)</h2>
             <ul id="memoryList"></ul>
         </div>
+        <audio id='audioPlay' src='http://dict.youdao.com/dictvoice?le=jap&audio=あ&type=3'"/>
+
     </div>
 
     <script>
@@ -359,6 +361,8 @@
             const character = element.innerText;
             const pronunciation = isHiragana ? hiraganaPronunciations[character] : katakanaPronunciations[character];
             pronunciationTip.innerText = `发音: ${pronunciation}`;
+
+            playAudio(character); // 播放音频
         }
 
         // 动态生成五十音表
@@ -376,6 +380,11 @@
                 });
                 table.appendChild(tr);
             });
+        }
+
+        function playAudio(word){
+            document.getElementById('audioPlay').src='http://dict.youdao.com/dictvoice?le=jap&type=3&audio='+word;
+            document.getElementById('audioPlay').play();
         }
 
         // 页面加载后生成表格
