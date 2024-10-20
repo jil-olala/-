@@ -378,6 +378,14 @@
             
             generateQuestion(); // 生成第一个问题
         }
+
+        document.getElementById("userInput").addEventListener('keydown', function (event) {
+            if (event.keyCode == 13) {
+                event.preventDefault();
+
+                checkAnswer();
+            }
+        });
     </script>
 </body>
 </html>
