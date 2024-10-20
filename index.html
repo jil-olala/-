@@ -111,6 +111,12 @@
 
         <!-- 右侧：发音测试 -->
         <div id="rightSide">
+            <select id="timeLimit">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="100">100</option>
+            </select>
+
             <h2>发音测试</h2>
             <div id="quizSection">
                 <div id="quizQuestion"></div>
@@ -128,6 +134,8 @@
     </div>
 
     <script>
+        let timeLimit = 10; 
+
         // 定义五十音数据
         const hiragana = {
             seion: [
@@ -260,6 +268,7 @@
             }
 
             isHiragana = !isHiragana; // 切换状态
+            resetQuestionPool(); // 重置问题池
             generateQuestion(); // 在切换后生成新的问题
         }
         
@@ -270,6 +279,9 @@
         function resetQuestionPool() {
             questionPool = Object.keys(isHiragana ? hiraganaPronunciations : katakanaPronunciations);
         }
+        
+        // 初始化时调用一次重置池
+        resetQuestionPool();
 
         function generateQuestion() {
             if (questionPool.length === 0) {
@@ -296,7 +308,7 @@
             const endTime = Date.now();
             const timeTaken = (endTime - startTime) / 1000; // 计算用户作答时间
 
-            if (userAnswer === correctAnswer && timeTaken <= 5) {
+            if (userAnswer === correctAnswer && timeTaken <= timeLimit) {
                 result.innerText = "回答正确！";
                 result.style.color = "green";
             } else {
@@ -385,6 +397,11 @@
 
                 checkAnswer();
             }
+        });
+
+        var selectElement = document.getElementById("timeLimit");
+        selectElement.addEventListener('change', function() {
+            timeLimit = selectElement.value;
         });
     </script>
 </body>
